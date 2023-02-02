@@ -2,12 +2,10 @@
 import os.path
 from os.path import exists
 import requests
-#from clint.textui import progress
 import re
 import argparse
 import sys
 from termcolor import colored, cprint
-#from tqdm.auto import tqdm
 import functools
 import shutil
 
