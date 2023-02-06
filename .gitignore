@@ -131,3 +131,6 @@ dmypy.json
 #Python scripts
 scripts
 pyvenv.cfg
+
+#misc
+*.txt
