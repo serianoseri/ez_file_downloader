@@ -8,12 +8,8 @@ import sys
 from termcolor import colored, cprint
 import functools
 import shutil
-
-from concurrent.futures import ThreadPoolExecutor
 import signal
-from functools import partial
 from threading import Event
-from typing import Iterable
 
 from rich.progress import (
     BarColumn,
@@ -25,34 +21,21 @@ from rich.progress import (
     TransferSpeedColumn,
 )
 
-progress = Progress(
-    TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
-    BarColumn(),
-    "[progress.percentage]{task.percentage:>3.1f}%",
-    "•",
-    DownloadColumn(),
-    "•",
-    TransferSpeedColumn(),
-    refresh_per_second=30,
-    auto_refresh=True,
-)
-
-
 done_event = Event()
-
 
 def handle_sigint(signum, frame):
     done_event.set()
 
 signal.signal(signal.SIGINT, handle_sigint)
 
-def copy_url(task_id: TaskID, url: str, path: str) -> None:
+def copy_url(task_id: TaskID, url: str, path: str, progress: Progress) -> None:
     """Copy data from a url to a local file."""
     #progress.console.log(f"Requesting {url}")
     global i
     response = requests.get(url, stream = True)
+    filesize = int(response.headers.get('Content-Length', 0))
     # This will break if the response doesn't contain content length
-    progress.update(task_id, total=int(response.headers.get('Content-Length', 0)))
+    progress.update(task_id, total=filesize)
     with open(path, "wb") as dest_file:
         progress.start_task(task_id)
         for data in response.iter_content(chunk_size=32*1024):
@@ -61,17 +44,26 @@ def copy_url(task_id: TaskID, url: str, path: str) -> None:
                 progress.update(task_id, advance=len(data))
             if progress.finished:
                 return
-    #progress.console.log(f"Downloaded {path}\n")
 
 def download(url: str, dest_dir: str):
     """Download file to the given directory."""
+    progress = Progress(
+        TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
+        BarColumn(),
+        "[progress.percentage]{task.percentage:>3.1f}%",
+        "•",
+        DownloadColumn(),
+        "•",
+        TransferSpeedColumn(),
+        refresh_per_second=30,
+        auto_refresh=True,
+    )
     with progress:
         filename = url.split("/")[-1]
         dest_path = os.path.join(dest_dir, filename)
         task_id = progress.add_task("Downloading", filename=filename, start=False, visible=True)
-        copy_url(task_id, url, dest_path)
-        #progress.refresh() not needed if auto_refresh=True in the Progress obj constuctor
-        task_id = ''
+        copy_url(task_id, url, dest_path, progress)
+        #progress.remove_task(task_id)
         return
 
 #create path if doesn't exist
