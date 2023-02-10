@@ -59,8 +59,7 @@ def download(url: str, dest_dir: str):
         auto_refresh=True,
     )
     with progress:
-        # saving the filename without the GET info provided in the link
-        filename = url.split("/")[-1].rsplit('?', 1)[0]
+        filename = url.split("/")[-1]
         dest_path = os.path.join(dest_dir, filename)
         task_id = progress.add_task("Downloading", filename=filename, start=False, visible=True)
         copy_url(task_id, url, dest_path, progress)
@@ -99,6 +98,7 @@ else:
 argParser = argparse.ArgumentParser()
 argParser.add_argument("-l", "--link", help = "txt file with downloadable links in it", type = check_in_path, required = True)
 argParser.add_argument('-d', '--outdir', help = 'path of the output direcotry, if not specified the default is dir downloads', type=str, default='downloads', required=False)
+argParser.add_argument('-c', '--clean', help='remove the GET parameters from the link', action='store_true')
 
 args = argParser.parse_args()
 
@@ -112,6 +112,8 @@ hls_name = ''
 
 for link in links:
     link = link.strip()
+    if args.clean:
+        link = link.rsplit('?', 1)[0]
     name = link.rsplit('/', 1)[-1]
     filename = os.path.join(current, name)
 
