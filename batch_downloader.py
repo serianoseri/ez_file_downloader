@@ -59,7 +59,8 @@ def download(url: str, dest_dir: str):
         auto_refresh=True,
     )
     with progress:
-        filename = url.split("/")[-1]
+        # saving the filename without the GET info provided in the link
+        filename = url.split("/")[-1].rsplit('?', 1)[0]
         dest_path = os.path.join(dest_dir, filename)
         task_id = progress.add_task("Downloading", filename=filename, start=False, visible=True)
         copy_url(task_id, url, dest_path, progress)
@@ -92,15 +93,16 @@ if sys.platform == 'win32':
 elif sys.platform == 'linux' or sys.platform == 'darwin':
     slash = '/'
 else:
-    print("[EROOR] you are on an unsupported operating system")
-    exit(1)
+    cprint('[ERROR] you are on an unsupported operating system', 'red', file=sys.stderr)
+    sys.exit(1)
 
 argParser = argparse.ArgumentParser()
 argParser.add_argument("-l", "--link", help = "txt file with downloadable links in it", type = check_in_path, required = True)
+argParser.add_argument('-d', '--outdir', help = 'path of the output direcotry, if not specified the default is dir downloads', type=str, default='downloads', required=False)
 
 args = argParser.parse_args()
 
-dir_downloads = 'downloads'
+dir_downloads = args.outdir
 ensure_dir(dir_downloads)
 links = open(args.link, 'r')
 current = ''
@@ -112,7 +114,7 @@ for link in links:
     link = link.strip()
     name = link.rsplit('/', 1)[-1]
     filename = os.path.join(current, name)
-    
+
     if link.startswith('/folder/'):
         newpath = dir_downloads + slash + link.replace('/folder/', '')
         current = newpath
