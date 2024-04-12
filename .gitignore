@@ -133,4 +133,5 @@ scripts
 pyvenv.cfg
 
 #misc
-links_*.txt
+link*.txt
+cook*.txt
