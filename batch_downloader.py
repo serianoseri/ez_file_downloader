@@ -82,6 +82,7 @@ def ensure_dir(path):
     #directory = os.path.dirname(file_path)
     if not os.path.exists(path):
         os.makedirs(path)
+
 #check if path is valid, if not print error and command help
 def check_in_path(path):
     if exists(path):
@@ -90,29 +91,6 @@ def check_in_path(path):
         cprint('Invalid argument, not of type path or invalid path', 'red', file=sys.stderr)
         argParser.print_help(sys.stderr)
         sys.exit(2)
-
-'''
-checking the os for selecting the path separator 
-    \ on windows
-    / on linux/macOS
-    if the user is on a different OS it will stop the execution of the script telling the user that is on an unsupported os
-'''
-slash = ''
-if sys.platform == 'win32':
-    slash = '\\'
-elif sys.platform == 'linux' or sys.platform == 'darwin':
-    slash = '/'
-else:
-    cprint('[ERROR] you are on an unsupported operating system', 'red', file=sys.stderr)
-    sys.exit(1)
-
-argParser = argparse.ArgumentParser()
-argParser.add_argument('-l', '--link', help = 'txt file with downloadable links in it', type = check_in_path, required = True)
-argParser.add_argument('-d', '--outdir', help = 'path of the output direcotry, if not specified the default is dir downloads', type=str, default='downloads', required=False)
-argParser.add_argument('-cl', '--clean', help='remove the GET parameters from the link', action='store_true')
-argParser.add_argument('-c', '--cookies', help = 'path/to/txt/file that contains cookies, N lines = N cookies, with the format cookie=\'value\'')
-
-args = argParser.parse_args()
 
 def prevent_duplicate(folder,filename):
     i = 1
@@ -133,6 +111,29 @@ def prevent_duplicate(folder,filename):
         path_to_file = os.path.join(folder, filename)
     #cprint('File already exists, renaming to: ' + filename, 'yellow')
     return filename
+
+'''
+checking the os for selecting the path separator 
+    \ on windows
+    / on linux/macOS
+    if the user is on a different OS it will stop the execution of the script telling the user that is on an unsupported os
+'''
+slash = ''
+if sys.platform == 'win32':
+    slash = '\\'
+elif sys.platform == 'linux' or sys.platform == 'darwin':
+    slash = '/'
+else:
+    cprint('[ERROR] you are on an unsupported operating system', 'red', file=sys.stderr)
+    sys.exit(1)
+
+argParser = argparse.ArgumentParser()
+argParser.add_argument('-l', '--link', help = 'txt file with downloadable links in it', type = check_in_path, required = True)
+argParser.add_argument('-d', '--outdir', help = 'path/to/the/out/direcotry, if not specified the default is downloads', type=str, default='downloads', required=False)
+argParser.add_argument('-cl', '--clean', help='remove the GET parameters from the link', action='store_true')
+argParser.add_argument('-c', '--cookies', help = 'path/to/txt/file that contains cookies, N lines = N cookies, with the format cookie=\'value\'')
+
+args = argParser.parse_args()
 
 dir_downloads = args.outdir
 if args.outdir == "":
